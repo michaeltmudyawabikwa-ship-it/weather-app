@@ -1,65 +1,127 @@
-import Image from "next/image";
+'use client';
+import {useState, useEffect} from 'react';
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+  const [city, setCity] = useState('');
+  const [weather, setWeather] = useState<any>(null);
+  const [forecast, setForecast] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [ error, setError] = useState('');
+  const [isDark, setIsDark] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  const apiKey = 'ee92f37f408897960eb8e3fc3e89c99a'
+
+  useEffect(() => {
+    const saved = localStorage.getItem('favorites');
+    if (saved) setFavorites(JSON.parse(saved));
+  }, []); 
+
+  const saveFavorites = (cityName: string) => {
+    const city = cityName.toLocaleLowerCase();
+    if (!favorites.includes(cityName)) {
+      const newFavs = [...favorites, cityName];
+      setFavorites(newFavs);
+      localStorage.setItem('favorites', JSON.stringify(newFavs));
+    }
+  };
+
+  const fetchWeather = async (cityName: string) => {
+    setLoading(true);
+    setError('')
+    setWeather(null);
+    setForecast([]);
+
+    try{
+      const res = await fetch(`http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
+      if (!res.ok) throw new Error('OOPS! city not found');
+      const data = await res.json();
+      setWeather(data);
+
+      const resForecast = await fetch(
+        `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`
+      );
+      const forecastData = await resForecast.json();
+      setForecast(forecastData.list.filter((_: any, i: number) => i % 8 === 0).slice(0,5));
+
+      saveFavorites(cityName);
+      
+    } catch (err: any)  {
+      setError(err.message);
+    }
+    setLoading(false);
+  };
+
+return (
+  <main className={`${isDark? 'bg-gray-900 text-white': 'bg-gradient-to-b from-blue-400 to-blue-900 text-white'} min-h-screen p-6`}>
+
+    <div className="flex justify-between items-center mb-6">
+      <h1 className="text-2xl font-bold ">Weather App</h1>
+      <button onClick={() => setIsDark(! isDark)} className="text-2xl">
+        {isDark? '☀️' : '🌙'}
+      </button>
     </div>
-  );
+    
+    <div className="flex gap-2 mb-4">
+      <input
+        placeholder="Enter city name...."
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        className="p-3 rounded-lg text-black w-full"
+      />
+      <button onClick={() => fetchWeather(city)} className="bg-white text-blue-900 px-4  rounded-lg font-bold">
+        {loading? 'Loading....' : 'Search'}
+      </button>
+    </div>
+
+    <div className="flex gap-2 flex-wrap mb-4">
+      {favorites.map(fav => (
+        <button key={fav} onClick={() => fetchWeather(fav)} className="bg-white/20 px-3 py-1 rounded-full text-sm">
+          {fav}
+        </button>
+      ))}
+    </div>
+
+    {error && (
+      <div className="bg-red-500/30 p-4 rounded-2x text-center mb-4">
+        <p className="text-2xl fon-bold">OOPS!</p>
+        <p>{error}</p>
+      </div>
+    )}
+
+    {weather && (
+      <div className="mt-8 bg-white/20 p-6 rounded-2xl backdrop-blur-md">
+        <h2 className="text-2xl font-bold">{weather.name}</h2>
+        <img
+          src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@4x.png`}
+          alt="weather icon"
+          className="w-32 h-32 mx-auto"
+        />
+        <p className="text-6xl font-bold mt-4">{Math.round(weather.main.temp)}°C</p>
+        <p className="text-xl capitalize">{weather.weather[0].description}</p>
+
+        <div className="flex justify-around mt-4">
+        <p>💧 {weather.main.humidity}%</p>
+        <p>💨 {weather.main.speed} m/s</p>
+        </div>
+      </div>
+    )}
+
+    {forecast.length > 0 && (
+      <div className="mt-6">
+        <h3 className="text-xl font-bold mb-2">5-Day Forecast</h3>
+        {forecast.map((day, i) => (
+          <div key={i} className="flex justify-between bg-white/10 p-3 rounded-lg mb-2">
+            <p>{new Date(day.dt_text).toLocaleDateString()}</p>
+            <p>{day.weather[0].main}</p>
+            <p>{Math.round(day.main.temp)}°C</p>
+          </div>
+        ))}
+      </div>
+    )}
+  </main>
+);
+
 }
+
+
