@@ -33,13 +33,13 @@ export default function Home() {
     setForecast([]);
 
     try{
-      const res = await fetch(`http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
+      const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
       if (!res.ok) throw new Error('OOPS! city not found');
       const data = await res.json();
       setWeather(data);
 
       const resForecast = await fetch(
-        `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`
       );
       const forecastData = await resForecast.json();
       setForecast(forecastData.list.filter((_: any, i: number) => i % 8 === 0).slice(0,5));
