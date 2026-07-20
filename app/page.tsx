@@ -10,7 +10,7 @@ export default function Home() {
   const [isDark, setIsDark] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  const apiKey = 'ee92f37f408897960eb8e3fc3e89c99a'
+  const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY
 
   useEffect(() => {
     const saved = localStorage.getItem('favorites');
