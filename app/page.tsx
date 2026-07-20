@@ -94,7 +94,7 @@ return (
         <h2 className="text-2xl font-bold">{weather.name}</h2>
         <img
           src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@4x.png`}
-          alt="weather icon"
+          alt={weather.weather[0].description}
           className="w-32 h-32 mx-auto"
         />
         <p className="text-6xl font-bold mt-4">{Math.round(weather.main.temp)}°C</p>
