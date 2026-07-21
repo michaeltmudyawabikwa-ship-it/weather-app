@@ -1,7 +1,7 @@
 'use client';
 import {WiDaySunny, WiCloudy, WiRain, WiSnow, WiThunderstorm, WiHumidity, WiStrongWind } from "react-icons/wi";
 import {useState, useEffect} from 'react';
-import { ImInsertTemplate } from "react-icons/im";
+
 
 export default function Home() {
   const [city, setCity] = useState('');
@@ -45,7 +45,7 @@ export default function Home() {
       );
       const forecastData = await resForecast.json();
 
-      const dailyForecast = forecastData.list?.filter(item => 
+      const dailyForecast = forecastData.list?.filter((item: any) => 
         item.dt_txt.includes("12:00:00")
       ).slice(0, 5) || [];
       setForecast(dailyForecast);
@@ -62,7 +62,7 @@ return (
   <main className={`${isDark? 'bg-gray-900 text-white': 'bg-gradient-to-b from-blue-400 to-blue-900 text-white'} min-h-screen p-6`}>
 
     <div className="flex justify-between items-center mb-6">
-      <h1 className="text-2xl font-bold ">Weather App</h1>
+      <h1 className="text-2xl font-bold ">Denga</h1>
       <button onClick={() => setIsDark(! isDark)} className="text-2xl">
         {isDark? '☀️' : '🌙'}
       </button>
