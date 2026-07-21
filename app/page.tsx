@@ -1,5 +1,7 @@
 'use client';
+import {WiDaySunny, WiCloudy, WiRain, WiSnow, WiThunderstorm, WiHumidity, WiStrongWind } from "react-icons/wi";
 import {useState, useEffect} from 'react';
+import { ImInsertTemplate } from "react-icons/im";
 
 export default function Home() {
   const [city, setCity] = useState('');
@@ -39,10 +41,14 @@ export default function Home() {
       setWeather(data);
 
       const resForecast = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
+        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric`
       );
       const forecastData = await resForecast.json();
-      setForecast(forecastData.list?.filter((_: any, i: number) => i % 8 === 0).slice(0,5) || []);
+
+      const dailyForecast = forecastData.list?.filter(item => 
+        item.dt_txt.includes("12:00:00")
+      ).slice(0, 5) || [];
+      setForecast(dailyForecast);
 
       saveFavorites(cityName);
       
@@ -64,6 +70,7 @@ return (
     
     <div className="flex gap-2 mb-4">
       <input
+        type="text"
         placeholder="Enter city name...."
         value={city}
         onChange={(e) => setCity(e.target.value)}
@@ -89,37 +96,50 @@ return (
       </div>
     )}
 
-    {weather && (
-      <div className="mt-8 bg-white/20 p-6 rounded-2xl backdrop-blur-md">
-        <h2 className="text-2xl font-bold">{weather.name}</h2>
-        <img
-          src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@4x.png`}
-          alt={weather.weather[0].description}
-          className="w-32 h-32 mx-auto"
-        />
-        <p className="text-6xl font-bold mt-4">{Math.round(weather.main.temp)}°C</p>
-        <p className="text-xl capitalize">{weather.weather[0].description}</p>
+{weather && (
+  <div className= "mx-auto mb-4">
+    {weather.weather[0].main === "Clear" && <WiDaySunny className="text-8xl text-yellow-400 mx-auto" />}
+    {weather.weather[0].main === "Clouds" && <WiCloudy className="text-8xl text-gray-400" />}
+    {weather.weather[0].main === "Rain" && <WiRain className="text-8xl text-blue-400" />}
+    {weather.weather[0].main === "Snow" && <WiSnow className="text-8xl text-white" />}
+    {weather.weather[0].main === "Thunderstorm" && <WiThunderstorm className="text-8xl text-purple-400" />}
+    {weather.weather[0].main === "Drizzle" && <WiRain className="text-8xl text-blue-300" />}
 
-        <div className="flex justify-around mt-4">
-        <p>💧 {weather.main.humidity}%</p>
-        <p>💨 {weather.main.speed} m/s</p>
-        </div>
-      </div>
-    )}
+    <p className="text-6xl font-bold mt-4">{Math.round(weather.main.temp)}°C</p>
+    <p className="text-xl capitalize">{weather.weather[0].description}</p>
 
-    {forecast.length > 0 && (
-      <div className="mt-6">
-        <h3 className="text-xl font-bold mb-2">5-Day Forecast</h3>
-        {forecast.map((day, i) => (
-          <div key={i} className="flex justify-between bg-white/10 p-3 rounded-lg mb-2">
-            <p>{new Date(day.dt_text).toLocaleDateString()}</p>
-            <p>{day.weather[0].main}</p>
-            <p>{Math.round(day.main.temp)}°C</p>
-          </div>
-        ))}
+    <div className="flex justify-around mt-4">
+      <p className="flex items-center gap-1"><WiHumidity /> {weather.main.humidity}%</p>
+      <p className="flex items-center gap-1"><WiStrongWind /> {weather.main.speed} m/s</p>
+    </div>
+
+  </div>
+)}
+    
+      
+    
+
+{forecast.length > 0 && (
+  <div className="mt-8">
+    <h3 className="text-2xl font-bold mb-4">5-Day Forecast</h3>
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+    {forecast.map((day, index) => (
+      <div key={index} className="bg-white/20 backdrop-blur-md rounded-xl">
+      <p className="text-sm font-semibold">
+        {new Date(day.dt * 1000).toLocaleDateString('en-US', {weekday: 'short'})}
+      </p>
+      {day.weather[0].main === "Clear" && <WiDaySunny className="text-8xl text-yellow-400" />}
+      {day.weather[0].main === "Clouds" && <WiCloudy className="text-8xl text-gray-400" />}
+      {day.weather[0].main === "Rain" && <WiRain className="text-8xl text-blue-400" />}
+      {day.weather[0].main === "Snow" && <WiSnow className="text-8xl text-white" />}
+      {day.weather[0].main === "Thunderstorm" && <WiThunderstorm className="text-8xl text-purple-400" />}
+      <p className="text-lg font-bold">{Math.round(day.main.temp)}°C</p>
       </div>
-    )}
-  </main>
+    ))}
+    </div>
+  </div>
+)}
+</main>
 );
 
 }
